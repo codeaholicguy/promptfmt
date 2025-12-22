@@ -64,6 +64,28 @@ describe('Parameter Substitution', () => {
       );
       expect(result).toBe('Hello John');
     });
+
+    it('should return empty string for null content', () => {
+      // @ts-expect-error Testing edge case
+      const result = resolveContent(null, {});
+      expect(result).toBe('');
+    });
+
+    it('should return empty string for undefined content', () => {
+      // @ts-expect-error Testing edge case
+      const result = resolveContent(undefined, {});
+      expect(result).toBe('');
+    });
+
+    it('should return empty string when function returns null', () => {
+      const result = resolveContent(() => null, {});
+      expect(result).toBe('');
+    });
+
+    it('should return empty string when function returns undefined', () => {
+      const result = resolveContent(() => undefined, {});
+      expect(result).toBe('');
+    });
   });
 
   describe('extractParameters', () => {

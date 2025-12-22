@@ -187,6 +187,92 @@ describe('PromptBuilder', () => {
       expect(result).not.toMatch(/[ \t]+\n/);
       expect(result).toContain('Role with trailing spaces');
     });
+
+    it('should exclude components with null content', () => {
+      // @ts-expect-error Testing edge case with null content
+      builder.role(null);
+      builder.goal('Valid goal');
+
+      const result = builder.build();
+      expect(result).not.toContain('null');
+      expect(result).toContain('Valid goal');
+    });
+
+    it('should exclude components with undefined content', () => {
+      // @ts-expect-error Testing edge case with undefined content
+      builder.role(undefined);
+      builder.goal('Valid goal');
+
+      const result = builder.build();
+      expect(result).not.toContain('undefined');
+      expect(result).toContain('Valid goal');
+    });
+
+    it('should exclude components with empty string content', () => {
+      builder.role('');
+      builder.goal('Valid goal');
+
+      const result = builder.build();
+      expect(result).not.toContain('Role');
+      expect(result).toContain('Valid goal');
+    });
+
+    it('should exclude components when function returns null', () => {
+      builder.role(() => null);
+      builder.goal('Valid goal');
+
+      const result = builder.build();
+      expect(result).not.toContain('null');
+      expect(result).toContain('Valid goal');
+    });
+
+    it('should exclude components when function returns undefined', () => {
+      builder.role(() => undefined);
+      builder.goal('Valid goal');
+
+      const result = builder.build();
+      expect(result).not.toContain('undefined');
+      expect(result).toContain('Valid goal');
+    });
+
+    it('should exclude components when function returns empty string', () => {
+      builder.role(() => '');
+      builder.goal('Valid goal');
+
+      const result = builder.build();
+      expect(result).not.toContain('Role');
+      expect(result).toContain('Valid goal');
+    });
+
+    it('should exclude array components with empty arrays', () => {
+      builder.steps([]);
+      builder.goal('Valid goal');
+
+      const result = builder.build();
+      expect(result).not.toContain('Step');
+      expect(result).toContain('Valid goal');
+    });
+
+    it('should exclude array components with null/undefined items', () => {
+      // @ts-expect-error Testing edge case
+      builder.steps([null, undefined, '']);
+      builder.goal('Valid goal');
+
+      const result = builder.build();
+      expect(result).not.toContain('Step');
+      expect(result).toContain('Valid goal');
+    });
+
+    it('should filter out null/undefined items from arrays but keep valid ones', () => {
+      // @ts-expect-error Testing edge case
+      builder.steps(['Step 1', null, 'Step 2', undefined, 'Step 3']);
+      const result = builder.build();
+      expect(result).toContain('Step 1');
+      expect(result).toContain('Step 2');
+      expect(result).toContain('Step 3');
+      expect(result).not.toContain('null');
+      expect(result).not.toContain('undefined');
+    });
   });
 
   describe('Clear', () => {

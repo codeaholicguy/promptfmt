@@ -102,6 +102,68 @@ describe('Prompt Renderer', () => {
       expect(result).not.toMatch(/[ \t]+\n/);
       expect(result).toContain('Role with trailing');
     });
+
+    it('should exclude components with null content', () => {
+      // @ts-expect-error Testing edge case with null content
+      const components = [
+        new RoleComponent(null),
+        new GoalComponent('Valid goal'),
+      ];
+      const result = renderComponents(components, {});
+      expect(result).not.toContain('null');
+      expect(result).toContain('Valid goal');
+    });
+
+    it('should exclude components with undefined content', () => {
+      // @ts-expect-error Testing edge case with undefined content
+      const components = [
+        new RoleComponent(undefined),
+        new GoalComponent('Valid goal'),
+      ];
+      const result = renderComponents(components, {});
+      expect(result).not.toContain('undefined');
+      expect(result).toContain('Valid goal');
+    });
+
+    it('should exclude components with empty string content', () => {
+      const components = [
+        new RoleComponent(''),
+        new GoalComponent('Valid goal'),
+      ];
+      const result = renderComponents(components, {});
+      expect(result).not.toContain('Role');
+      expect(result).toContain('Valid goal');
+    });
+
+    it('should exclude components when function returns null', () => {
+      const components = [
+        new RoleComponent(() => null),
+        new GoalComponent('Valid goal'),
+      ];
+      const result = renderComponents(components, {});
+      expect(result).not.toContain('null');
+      expect(result).toContain('Valid goal');
+    });
+
+    it('should exclude components when function returns undefined', () => {
+      const components = [
+        new RoleComponent(() => undefined),
+        new GoalComponent('Valid goal'),
+      ];
+      const result = renderComponents(components, {});
+      expect(result).not.toContain('undefined');
+      expect(result).toContain('Valid goal');
+    });
+
+    it('should exclude components when function returns empty string', () => {
+      const components = [
+        new RoleComponent(() => ''),
+        new GoalComponent('Valid goal'),
+      ];
+      const result = renderComponents(components, {});
+      expect(result).not.toContain('Role');
+      expect(result).toContain('Valid goal');
+    });
   });
 });
 

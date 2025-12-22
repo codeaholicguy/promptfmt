@@ -1,6 +1,6 @@
 import {PromptComponent} from '../types/component.types'
 import {ParameterMap} from '../types/parameter.types'
-import {resolveContent} from './parameter-substitution'
+import {resolveComponentContent} from './component-content-resolver'
 import {cleanupOutput} from './output-cleanup'
 
 /**
@@ -63,15 +63,28 @@ export function renderComponent(
   params: ParameterMap,
   options: Required<RenderOptions> = DEFAULT_OPTIONS,
 ): string {
-  const content = resolveContent(component.content, params)
+  // Handle null/undefined content before resolving
+  if (component.content === null || component.content === undefined) {
+    return ''
+  }
 
-  if (options.skipEmpty && !content.trim()) {
+  const content = resolveComponentContent(
+    component.content,
+    params,
+    component.type,
+  )
+
+  // Skip empty, null, or undefined content
+  if (options.skipEmpty && (!content || !content.trim())) {
     return ''
   }
 
   if (options.includeLabels) {
     const label = options.labelFormatter(component)
-    return `${label}\n${content}`
+    // Only include label if it's not empty
+    if (label && label.trim()) {
+      return `${label}\n${content}`
+    }
   }
 
   return content

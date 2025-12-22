@@ -37,15 +37,23 @@ export function substitute(template: string, params: ParameterMap): string {
  * 
  * @param content - Content value (string, template string, or function)
  * @param params - Parameter map for substitution/evaluation
- * @returns Resolved string content
+ * @returns Resolved string content, or empty string if content is null/undefined
  */
 export function resolveContent(
   content: ContentValue,
   params: ParameterMap = {}
 ): string {
+  if (content === null || content === undefined) {
+    return '';
+  }
+
   if (typeof content === 'function') {
     // If content is a function, call it with params
-    return content(params);
+    const result = content(params);
+    if (result === null || result === undefined) {
+      return '';
+    }
+    return result;
   }
   
   // If content is a string (including template strings), substitute parameters

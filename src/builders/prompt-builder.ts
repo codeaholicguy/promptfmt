@@ -1,7 +1,6 @@
 import {
   PromptComponent,
   ComponentOptions,
-  ComponentType,
 } from '../types/component.types'
 import {ContentValue, ParameterMap} from '../types/parameter.types'
 import {RoleComponent} from '../components/role.component'
@@ -16,7 +15,7 @@ import {GuardrailsComponent} from '../components/guardrails.component'
 import {ConstraintsComponent} from '../components/constraints.component'
 import {TasksComponent} from '../components/tasks.component'
 import {StepsComponent} from '../components/steps.component'
-import {cleanupOutput} from '../utils/output-cleanup'
+import {renderComponents as renderComponentsUtil, RenderOptions} from '../utils/prompt-renderer'
 
 /**
  * PromptBuilder provides a fluent API for building prompts
@@ -197,8 +196,8 @@ export class PromptBuilder {
       | ((params: ParameterMap) => string | string[]),
     options?: ComponentOptions,
   ): this {
-    // Store content as-is - array handling happens during build/resolve
-    // This allows functions to return arrays which will be handled in resolveContent
+    // Store content as-is - array handling happens during build/render
+    // Arrays and functions returning arrays are handled by resolveComponentContent
     this.addComponent(
       new StepsComponent(content as ContentValue, this.getOptions(options)),
     )
@@ -300,106 +299,24 @@ export class PromptBuilder {
 
   /**
    * Renders components to final prompt string
+   * Uses utility function but with custom options to match PromptBuilder behavior:
+   * - Only includes labels if explicitly set on component (no default labels)
+   * - Uses '\n\n' as separator
    */
   private renderComponents(
     components: PromptComponent[],
     params: ParameterMap,
   ): string {
-    const sections: string[] = []
-
-    for (const component of components) {
-      const content = this.resolveContent(
-        component.content,
-        params,
-        component.type,
-      )
-
-      if (!content.trim()) {
-        continue // Skip empty components
-      }
-
-      // Format component with label if provided
-      if (component.label) {
-        sections.push(`${component.label}\n${content}`)
-      } else {
-        sections.push(content)
-      }
+    const options: RenderOptions = {
+      separator: '\n\n',
+      includeLabels: true,
+      // Only include label if component.label is explicitly set
+      // Return empty string if no label, which will be filtered out
+      labelFormatter: (component) => component.label || '',
+      skipEmpty: true,
     }
 
-    const output = sections.join('\n\n')
-    return cleanupOutput(output)
-  }
-
-  /**
-   * Resolves content value to string
-   * Handles special case for steps component where arrays are auto-prefixed
-   */
-  private resolveContent(
-    content:
-      | ContentValue
-      | string[]
-      | ((params: ParameterMap) => string | string[]),
-    params: ParameterMap,
-    componentType?: string,
-  ): string {
-    let resolved: string | string[]
-
-    if (Array.isArray(content)) {
-      // Content is directly an array (for steps)
-      resolved = content
-    } else if (typeof content === 'function') {
-      // If content is a function, call it with params
-      resolved = content(params)
-    } else {
-      // If content is a string (including template strings), substitute parameters
-      resolved = this.substituteParameters(content, params)
-    }
-
-    // Special handling for components that support arrays: format with appropriate prefixes
-    if (Array.isArray(resolved)) {
-      switch (componentType) {
-        case ComponentType.STEPS:
-          return resolved
-            .map((step, index) => `Step ${index + 1}: ${step}`)
-            .join('\n')
-
-        case ComponentType.TASKS:
-          return resolved
-            .map((task, index) => `${index + 1}. ${task}`)
-            .join('\n')
-
-        case ComponentType.FEW_SHOTS:
-          return resolved
-            .map((example, index) => `Example ${index + 1}:\n${example}`)
-            .join('\n\n')
-
-        case ComponentType.GUARDRAILS:
-        case ComponentType.CONSTRAINTS:
-          return resolved.map((item) => `- ${item}`).join('\n')
-
-        default:
-          // For other component types, join array items with newlines
-          return resolved.join('\n')
-      }
-    }
-
-    return String(resolved)
-  }
-
-  /**
-   * Substitutes parameters in template strings
-   */
-  private substituteParameters(template: string, params: ParameterMap): string {
-    return template.replace(/\$\{([^}]+)\}/g, (match, paramName) => {
-      const trimmedParamName = paramName.trim()
-      const value = params[trimmedParamName]
-
-      if (value === undefined || value === null) {
-        return match // Keep placeholder if param not found
-      }
-
-      return String(value)
-    })
+    return renderComponentsUtil(components, params, options)
   }
 
   /**
