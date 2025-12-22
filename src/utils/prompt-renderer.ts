@@ -1,6 +1,7 @@
-import { PromptComponent } from '../types/component.types';
-import { ParameterMap } from '../types/parameter.types';
-import { resolveContent } from './parameter-substitution';
+import {PromptComponent} from '../types/component.types'
+import {ParameterMap} from '../types/parameter.types'
+import {resolveContent} from './parameter-substitution'
+import {cleanupOutput} from './output-cleanup'
 
 /**
  * Rendering options for prompt formatting
@@ -9,19 +10,19 @@ export interface RenderOptions {
   /**
    * Separator between components (default: '\n\n')
    */
-  separator?: string;
+  separator?: string
   /**
    * Whether to include component labels/headers (default: true)
    */
-  includeLabels?: boolean;
+  includeLabels?: boolean
   /**
    * Custom formatter for component labels
    */
-  labelFormatter?: (component: PromptComponent) => string;
+  labelFormatter?: (component: PromptComponent) => string
   /**
    * Whether to skip empty components (default: true)
    */
-  skipEmpty?: boolean;
+  skipEmpty?: boolean
 }
 
 /**
@@ -32,7 +33,7 @@ const DEFAULT_OPTIONS: Required<RenderOptions> = {
   includeLabels: true,
   labelFormatter: (component) => {
     if (component.label) {
-      return component.label;
+      return component.label
     }
     // Default label based on component type
     const typeLabels: Record<string, string> = {
@@ -48,11 +49,11 @@ const DEFAULT_OPTIONS: Required<RenderOptions> = {
       constraints: 'Constraints',
       tasks: 'Tasks',
       steps: 'Steps',
-    };
-    return typeLabels[component.type] || component.type.toUpperCase();
+    }
+    return typeLabels[component.type] || component.type.toUpperCase()
   },
   skipEmpty: true,
-};
+}
 
 /**
  * Renders a single component to string
@@ -60,20 +61,20 @@ const DEFAULT_OPTIONS: Required<RenderOptions> = {
 export function renderComponent(
   component: PromptComponent,
   params: ParameterMap,
-  options: Required<RenderOptions> = DEFAULT_OPTIONS
+  options: Required<RenderOptions> = DEFAULT_OPTIONS,
 ): string {
-  const content = resolveContent(component.content, params);
-  
+  const content = resolveContent(component.content, params)
+
   if (options.skipEmpty && !content.trim()) {
-    return '';
+    return ''
   }
-  
+
   if (options.includeLabels) {
-    const label = options.labelFormatter(component);
-    return `${label}\n${content}`;
+    const label = options.labelFormatter(component)
+    return `${label}\n${content}`
   }
-  
-  return content;
+
+  return content
 }
 
 /**
@@ -82,19 +83,18 @@ export function renderComponent(
 export function renderComponents(
   components: PromptComponent[],
   params: ParameterMap = {},
-  options: RenderOptions = {}
+  options: RenderOptions = {},
 ): string {
   const mergedOptions: Required<RenderOptions> = {
     ...DEFAULT_OPTIONS,
     ...options,
     labelFormatter: options.labelFormatter || DEFAULT_OPTIONS.labelFormatter,
-  };
-  
+  }
+
   const renderedSections = components
     .map((component) => renderComponent(component, params, mergedOptions))
-    .filter((section) => section.length > 0);
-  
-  return renderedSections.join(mergedOptions.separator);
+    .filter((section) => section.length > 0)
+
+  const output = renderedSections.join(mergedOptions.separator)
+  return cleanupOutput(output)
 }
-
-

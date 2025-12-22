@@ -158,6 +158,35 @@ describe('PromptBuilder', () => {
       const result = builder.build({});
       expect(result).toContain('Hello ${name}');
     });
+
+    it('should clean up redundant whitespace in output', () => {
+      builder
+        .role('You are a helper   ')
+        .goal('Help users    with tasks');
+
+      const result = builder.build();
+      expect(result).not.toContain('   ');
+      expect(result).toContain('You are a helper');
+      expect(result).toContain('Help users with tasks');
+    });
+
+    it('should collapse excessive newlines', () => {
+      builder
+        .role('Role 1')
+        .goal('Goal 1');
+
+      const result = builder.build();
+      // Should not have 3+ consecutive newlines
+      expect(result).not.toMatch(/\n{3,}/);
+    });
+
+    it('should remove trailing whitespace from lines', () => {
+      builder.role('Role with trailing spaces   \t  ');
+
+      const result = builder.build();
+      expect(result).not.toMatch(/[ \t]+\n/);
+      expect(result).toContain('Role with trailing spaces');
+    });
   });
 
   describe('Clear', () => {

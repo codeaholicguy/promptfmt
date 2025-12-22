@@ -16,6 +16,7 @@ import {GuardrailsComponent} from '../components/guardrails.component'
 import {ConstraintsComponent} from '../components/constraints.component'
 import {TasksComponent} from '../components/tasks.component'
 import {StepsComponent} from '../components/steps.component'
+import {cleanupOutput} from '../utils/output-cleanup'
 
 /**
  * PromptBuilder provides a fluent API for building prompts
@@ -325,7 +326,8 @@ export class PromptBuilder {
       }
     }
 
-    return sections.join('\n\n')
+    const output = sections.join('\n\n')
+    return cleanupOutput(output)
   }
 
   /**

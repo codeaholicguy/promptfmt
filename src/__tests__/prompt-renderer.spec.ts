@@ -71,6 +71,37 @@ describe('Prompt Renderer', () => {
       const result = renderComponents(components, {});
       expect(result).not.toContain('   ');
     });
+
+    it('should clean up redundant whitespace in output', () => {
+      const components = [
+        new RoleComponent('Role with   multiple   spaces'),
+        new GoalComponent('Goal with\t\t\ttabs'),
+      ];
+      const result = renderComponents(components, {});
+      expect(result).not.toContain('   ');
+      expect(result).not.toContain('\t\t');
+      expect(result).toContain('Role with multiple spaces');
+      expect(result).toContain('Goal with tabs');
+    });
+
+    it('should collapse excessive newlines', () => {
+      const components = [
+        new RoleComponent('Role 1'),
+        new GoalComponent('Goal 1'),
+      ];
+      const result = renderComponents(components, {});
+      // Should not have 3+ consecutive newlines
+      expect(result).not.toMatch(/\n{3,}/);
+    });
+
+    it('should remove trailing whitespace from lines', () => {
+      const components = [
+        new RoleComponent('Role with trailing   \t  '),
+      ];
+      const result = renderComponents(components, {});
+      expect(result).not.toMatch(/[ \t]+\n/);
+      expect(result).toContain('Role with trailing');
+    });
   });
 });
 
