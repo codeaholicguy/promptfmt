@@ -1,6 +1,6 @@
 import { BaseComponent } from './base.component';
 import { ComponentType } from '../types/component.types';
-import { ContentValue } from '../types/parameter.types';
+import { ArrayContentValue } from '../types/parameter.types';
 import { Condition } from '../types/conditional.types';
 
 /**
@@ -8,7 +8,7 @@ import { Condition } from '../types/conditional.types';
  */
 export class FewShotsComponent extends BaseComponent {
   constructor(
-    content: ContentValue,
+    content: ArrayContentValue,
     options?: {
       condition?: Condition;
       order?: number;

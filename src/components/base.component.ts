@@ -1,5 +1,5 @@
 import { PromptComponent, ComponentType } from '../types/component.types';
-import { ContentValue } from '../types/parameter.types';
+import { ContentValue, ArrayContentValue } from '../types/parameter.types';
 import { Condition } from '../types/conditional.types';
 
 /**
@@ -8,14 +8,14 @@ import { Condition } from '../types/conditional.types';
  */
 export class BaseComponent implements PromptComponent {
   public readonly type: ComponentType;
-  public content: ContentValue;
+  public content: ContentValue | ArrayContentValue;
   public condition?: Condition;
   public order?: number;
   public label?: string;
 
   constructor(
     type: ComponentType,
-    content: ContentValue,
+    content: ContentValue | ArrayContentValue,
     options?: {
       condition?: Condition;
       order?: number;

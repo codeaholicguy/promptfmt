@@ -1,4 +1,4 @@
-import { ContentValue } from './parameter.types';
+import { ContentValue, ArrayContentValue } from './parameter.types';
 import { Condition } from './conditional.types';
 
 /**
@@ -28,9 +28,10 @@ export interface PromptComponent {
    */
   type: ComponentType;
   /**
-   * Content of the component - can be static, template string, or function
+   * Content of the component - can be static, template string, function, or array
+   * (arrays are supported for array-based components like few-shots, guardrails, etc.)
    */
-  content: ContentValue;
+  content: ContentValue | ArrayContentValue;
   /**
    * Optional condition for conditional inclusion
    */

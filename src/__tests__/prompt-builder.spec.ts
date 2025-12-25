@@ -2,6 +2,7 @@ import { PromptBuilder } from '../builders/prompt-builder';
 import { createCondition } from '../utils/conditional-evaluator';
 import { RoleComponent } from '../components/role.component';
 import { GoalComponent } from '../components/goal.component';
+import { ConstraintsComponent } from '../components/constraints.component';
 
 describe('PromptBuilder', () => {
   let builder: PromptBuilder;
@@ -298,6 +299,49 @@ describe('PromptBuilder', () => {
         new GoalComponent('Goal 1'),
       ]);
       expect(builder.getComponents()).toHaveLength(2);
+    });
+  });
+
+  describe('Functions Returning Component Instances', () => {
+    it('should handle function returning ConstraintsComponent with string content', () => {
+      builder.constraints((params) => {
+        if (params.environment === 'prod') {
+          return new ConstraintsComponent('Avoid destructive test cases. Prefer read-only or safely reversible operations.');
+        }
+        return '';
+      });
+
+      const result = builder.build({ environment: 'prod' });
+      expect(result).toContain('Avoid destructive test cases');
+      expect(result).toContain('Prefer read-only');
+    });
+
+    it('should handle function returning ConstraintsComponent with array content', () => {
+      builder.constraints((params) => {
+        if (params.environment === 'prod') {
+          return new ConstraintsComponent([
+            'Avoid destructive test cases. Prefer read-only or safely reversible operations.',
+            'Ensure no test cases could cause data loss or corruption.',
+          ]);
+        }
+        return '';
+      });
+
+      const result = builder.build({ environment: 'prod' });
+      expect(result).toContain('- Avoid destructive test cases');
+      expect(result).toContain('- Ensure no test cases could cause data loss');
+    });
+
+    it('should handle function returning null when condition is not met', () => {
+      builder.constraints((params) => {
+        if (params.environment === 'prod') {
+          return new ConstraintsComponent('Some constraint');
+        }
+        return null;
+      });
+
+      const result = builder.build({ environment: 'dev' });
+      expect(result).not.toContain('Some constraint');
     });
   });
 });

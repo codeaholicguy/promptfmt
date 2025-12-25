@@ -2,7 +2,7 @@ import {
   PromptComponent,
   ComponentOptions,
 } from '../types/component.types'
-import {ContentValue, ParameterMap} from '../types/parameter.types'
+import {ContentValue, ArrayContentValue, ParameterMap} from '../types/parameter.types'
 import {RoleComponent} from '../components/role.component'
 import {GoalComponent} from '../components/goal.component'
 import {InputComponent} from '../components/input.component'
@@ -112,14 +112,11 @@ export class PromptBuilder {
    * Arrays will be formatted as numbered examples when the prompt is built.
    */
   fewShots(
-    content:
-      | ContentValue
-      | string[]
-      | ((params: ParameterMap) => string | string[]),
+    content: ArrayContentValue,
     options?: ComponentOptions,
   ): this {
     this.addComponent(
-      new FewShotsComponent(content as ContentValue, this.getOptions(options)),
+      new FewShotsComponent(content, this.getOptions(options)),
     )
     return this
   }
@@ -130,15 +127,12 @@ export class PromptBuilder {
    * Arrays will be auto-prefixed with "-" when the prompt is built.
    */
   guardrails(
-    content:
-      | ContentValue
-      | string[]
-      | ((params: ParameterMap) => string | string[]),
+    content: ArrayContentValue,
     options?: ComponentOptions,
   ): this {
     this.addComponent(
       new GuardrailsComponent(
-        content as ContentValue,
+        content,
         this.getOptions(options),
       ),
     )
@@ -151,15 +145,12 @@ export class PromptBuilder {
    * Arrays will be auto-prefixed with "-" when the prompt is built.
    */
   constraints(
-    content:
-      | ContentValue
-      | string[]
-      | ((params: ParameterMap) => string | string[]),
+    content: ArrayContentValue,
     options?: ComponentOptions,
   ): this {
     this.addComponent(
       new ConstraintsComponent(
-        content as ContentValue,
+        content,
         this.getOptions(options),
       ),
     )
@@ -172,14 +163,11 @@ export class PromptBuilder {
    * Arrays will be auto-prefixed with "1.", "2.", etc. when the prompt is built.
    */
   tasks(
-    content:
-      | ContentValue
-      | string[]
-      | ((params: ParameterMap) => string | string[]),
+    content: ArrayContentValue,
     options?: ComponentOptions,
   ): this {
     this.addComponent(
-      new TasksComponent(content as ContentValue, this.getOptions(options)),
+      new TasksComponent(content, this.getOptions(options)),
     )
     return this
   }
@@ -190,16 +178,13 @@ export class PromptBuilder {
    * Arrays will be auto-prefixed with "Step 1:", "Step 2:", etc. when the prompt is built.
    */
   steps(
-    content:
-      | ContentValue
-      | string[]
-      | ((params: ParameterMap) => string | string[]),
+    content: ArrayContentValue,
     options?: ComponentOptions,
   ): this {
     // Store content as-is - array handling happens during build/render
     // Arrays and functions returning arrays are handled by resolveComponentContent
     this.addComponent(
-      new StepsComponent(content as ContentValue, this.getOptions(options)),
+      new StepsComponent(content, this.getOptions(options)),
     )
     return this
   }
